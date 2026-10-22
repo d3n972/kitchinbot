@@ -57,12 +57,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      # Best effort: a package linked to the repository can be made public
-      # with the workflow token. If GitHub refuses, flip it once in the
-      # package settings; the deployment does not use pull credentials.
-      - name: Make GHCR package public
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh api --method PATCH /user/packages/container/kitchinbot -f visibility=public
