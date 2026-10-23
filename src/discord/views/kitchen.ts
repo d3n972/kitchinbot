@@ -16,6 +16,7 @@ import {
 import { ConflictError, ValidationError } from "../../domain/errors.ts";
 import type { Page } from "../../services/orders.ts";
 import type { OrderWithUser } from "../../services/repositories.ts";
+import { truncate } from "../../text.ts";
 import type { BotContext } from "../context.ts";
 import {
   backButton,
@@ -39,7 +40,9 @@ function orderRow(
   if (actions.length === 0) return null;
 
   const row = new ActionRowBuilder<ButtonBuilder>();
+
   for (const action of actions) {
+    if (action === "cancel") continue;
     row.addComponents(
       new ButtonBuilder()
         .setCustomId(`kitchen:act:${order.id}:${action}:${page}`)
@@ -47,6 +50,25 @@ function orderRow(
         .setStyle(actionStyle(action)),
     );
   }
+
+  if (order.mealRecipe) {
+    row.addComponents(
+      new ButtonBuilder()
+        .setCustomId(`kitchen:recipe:${order.id}`)
+        .setLabel("📝 Recipe")
+        .setStyle(ButtonStyle.Secondary),
+    );
+  }
+
+  if (actions.includes("cancel")) {
+    row.addComponents(
+      new ButtonBuilder()
+        .setCustomId(`kitchen:act:${order.id}:cancel:${page}`)
+        .setLabel(ACTION_LABELS.cancel)
+        .setStyle(actionStyle("cancel")),
+    );
+  }
+
   return row;
 }
 
@@ -127,4 +149,33 @@ export async function handleKitchenAction(
 
   const result = await ctx.orders.listKitchen(page);
   await interaction.editReply(kitchenView(result));
+}
+
+export async function showKitchenRecipe(
+  ctx: BotContext,
+  interaction: ButtonInteraction,
+  orderId: number,
+): Promise<void> {
+  const order = await ctx.orders.getById(orderId);
+
+  if (!order.mealRecipe) {
+    await interaction.reply({
+      content: "No recipe was captured for this order.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const embed = new EmbedBuilder()
+    .setTitle(
+      `📝 ${truncate(order.mealName ?? "Order", 220)} · #${order.id}`,
+    )
+    .setColor(COLORS.muted)
+    .setDescription(truncate(order.mealRecipe, 4000));
+
+  await interaction.reply({
+    embeds: [embed],
+    flags: MessageFlags.Ephemeral,
+    allowedMentions: { parse: [] },
+  });
 }

@@ -42,6 +42,7 @@ export const meals = pgTable("meals", {
     .primaryKey()
     .generatedAlwaysAsIdentity({ startWith: 1 }),
   name: text("name").notNull(),
+  recipe: text("recipe"),
   enabled: boolean("enabled").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -65,6 +66,7 @@ export const orders = pgTable(
       onDelete: "restrict",
     }),
     mealName: text("meal_name"),
+    mealRecipe: text("meal_recipe"),
     customText: text("custom_text"),
     idempotencyKey: text("idempotency_key"),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -86,6 +88,10 @@ export const orders = pgTable(
     check(
       "orders_custom_text_length",
       sql`${table.customText} IS NULL OR length(${table.customText}) <= 4000`,
+    ),
+    check(
+      "orders_recipe_requires_meal",
+      sql`${table.mealRecipe} IS NULL OR ${table.mealId} IS NOT NULL`,
     ),
     index("orders_user_created_idx").on(table.userId, table.createdAt),
     index("orders_status_idx").on(table.status),

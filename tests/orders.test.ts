@@ -69,6 +69,30 @@ describe("order service", () => {
     expect(reloaded.mealName).toBe("Chicken Curry");
   });
 
+  test("snapshots the meal recipe on the order", async () => {
+    const meal = await fakes.meals.create(
+      "Chicken Curry",
+      "Simmer the sauce, then add the chicken.",
+    );
+
+    const order = await service.createPredefined(mark, meal.id, null);
+    expect(order.mealRecipe).toBe(
+      "Simmer the sauce, then add the chicken.",
+    );
+
+    await fakes.meals.setRecipe(meal.id, "A different recipe");
+
+    const reloaded = await service.getById(order.id);
+    expect(reloaded.mealRecipe).toBe(
+      "Simmer the sauce, then add the chicken.",
+    );
+  });
+
+  test("custom orders do not carry a recipe", async () => {
+    const order = await service.createCustom(mark, "One omurice", null);
+    expect(order.mealRecipe).toBeNull();
+  });
+
   test("stores custom text verbatim", async () => {
     const raw = "  2 chicken curry, one without onions\nand an omurice  ";
 

@@ -127,6 +127,7 @@ export function createOrderService(deps: OrderServiceDeps): OrderService {
     content: {
       mealId: number | null;
       mealName: string | null;
+      mealRecipe: string | null;
       customText: string | null;
     },
     idempotencyKey: string | null,
@@ -181,7 +182,12 @@ export function createOrderService(deps: OrderServiceDeps): OrderService {
 
       return persist(
         actor,
-        { mealId: meal.id, mealName: meal.name, customText: null },
+        {
+          mealId: meal.id,
+          mealName: meal.name,
+          mealRecipe: meal.recipe,
+          customText: null,
+        },
         idempotencyKey,
       );
     },
@@ -198,7 +204,12 @@ export function createOrderService(deps: OrderServiceDeps): OrderService {
 
       return persist(
         actor,
-        { mealId: null, mealName: null, customText },
+        {
+          mealId: null,
+          mealName: null,
+          mealRecipe: null,
+          customText,
+        },
         idempotencyKey,
       );
     },

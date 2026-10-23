@@ -9,6 +9,7 @@ export interface CreateOrderRecord {
   userId: number;
   mealId: number | null;
   mealName: string | null;
+  mealRecipe: string | null;
   customText: string | null;
   idempotencyKey: string | null;
 }
@@ -23,8 +24,9 @@ export interface MealRepository {
   listEnabled(): Promise<Meal[]>;
   listAll(): Promise<Meal[]>;
   findById(id: number): Promise<Meal | null>;
-  create(name: string): Promise<Meal>;
+  create(name: string, recipe?: string | null): Promise<Meal>;
   rename(id: number, name: string): Promise<Meal | null>;
+  setRecipe(id: number, recipe: string | null): Promise<Meal | null>;
   setEnabled(id: number, enabled: boolean): Promise<Meal | null>;
   delete(id: number): Promise<boolean>;
   countOrdersForMeal(mealId: number): Promise<number>;

@@ -17,6 +17,7 @@ import {
 } from "../../domain/order-status.ts";
 import { buildDmDescription } from "../../notifications/format.ts";
 import type { OrderWithUser } from "../../services/repositories.ts";
+import { truncate } from "../../text.ts";
 import type { BotContext } from "../context.ts";
 import { COLORS, statusLabel } from "../ui.ts";
 
@@ -38,6 +39,17 @@ export function orderDmView(order: OrderWithUser): BaseMessageOptions {
     )
     .setTimestamp(order.createdAt);
 
+  const embeds = [embed];
+
+  if (order.mealRecipe) {
+    embeds.push(
+      new EmbedBuilder()
+        .setTitle("📝 Recipe")
+        .setColor(COLORS.muted)
+        .setDescription(truncate(order.mealRecipe, 4000)),
+    );
+  }
+
   const actions = availableActions(order.status).filter((action) =>
     DM_ACTIONS.includes(action),
   );
@@ -56,7 +68,7 @@ export function orderDmView(order: OrderWithUser): BaseMessageOptions {
   }
 
   return {
-    embeds: [embed],
+    embeds,
     components: actions.length > 0 ? [row] : [],
     allowedMentions: { parse: [] },
   };

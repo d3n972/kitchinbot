@@ -9,16 +9,18 @@ import {
 import { isOrderAction } from "../domain/order-status.ts";
 import { isAdmin, type BotContext } from "./context.ts";
 import { homeView } from "./views/home.ts";
-import { handleKitchenAction, openKitchen } from "./views/kitchen.ts";
+import { handleKitchenAction, openKitchen, showKitchenRecipe } from "./views/kitchen.ts";
 import {
   confirmRemoveMeal,
   handleMealsSelect,
   openAddMealModal,
+  openEditRecipeModal,
   openMealDetail,
   openMeals,
   openRemoveMeal,
   openRenameMealModal,
   submitAddMeal,
+  submitEditRecipe,
   submitRenameMeal,
   toggleMeal,
 } from "./views/meals.ts";
@@ -157,6 +159,14 @@ async function routeButton(
       return;
     }
 
+    case "kitchen:recipe": {
+      if (!(await requireAdmin(ctx, interaction))) return;
+
+      const orderId = parseId(rest[0]);
+      if (orderId) await showKitchenRecipe(ctx, interaction, orderId);
+      return;
+    }
+
     case "meals:list":
       if (await requireAdmin(ctx, interaction)) {
         await openMeals(ctx, interaction);
@@ -201,6 +211,13 @@ async function routeButton(
       if (!(await requireAdmin(ctx, interaction))) return;
       const mealId = parseId(rest[0]);
       if (mealId) await confirmRemoveMeal(ctx, interaction, mealId);
+      return;
+    }
+
+    case "meals:recipe": {
+      if (!(await requireAdmin(ctx, interaction))) return;
+      const mealId = parseId(rest[0]);
+      if (mealId) await openEditRecipeModal(ctx, interaction, mealId);
       return;
     }
 
@@ -259,6 +276,13 @@ async function routeModal(
     if (!(await requireAdmin(ctx, interaction))) return;
     const mealId = parseId(interaction.customId.split(":")[2]);
     if (mealId) await submitRenameMeal(ctx, interaction, mealId);
+    return;
+  }
+
+  if (interaction.customId.startsWith("meals:recipe-modal:")) {
+    if (!(await requireAdmin(ctx, interaction))) return;
+    const mealId = parseId(interaction.customId.split(":")[2]);
+    if (mealId) await submitEditRecipe(ctx, interaction, mealId);
     return;
   }
 

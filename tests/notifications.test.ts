@@ -14,6 +14,7 @@ function order(overrides: Partial<OrderWithUser> = {}): OrderWithUser {
     status: "ORDERED",
     mealId: 1,
     mealName: "Chicken Curry",
+    mealRecipe: null,
     customText: null,
     idempotencyKey: null,
     createdAt: new Date("2026-01-01T12:00:00Z"),

@@ -21,7 +21,28 @@ describe("meal service", () => {
   test("creates a meal with trimmed catalogue name", async () => {
     const meal = await meals.create("  Chicken Curry  ");
     expect(meal.name).toBe("Chicken Curry");
+    expect(meal.recipe).toBeNull();
     expect(meal.enabled).toBe(true);
+  });
+
+  test("stores an optional recipe and can replace or clear it", async () => {
+    const meal = await meals.create(
+      "Chicken Curry",
+      "  Simmer the sauce.\nAdd chicken.  ",
+    );
+    expect(meal.recipe).toBe("Simmer the sauce.\nAdd chicken.");
+
+    const updated = await meals.setRecipe(meal.id, "New recipe");
+    expect(updated.recipe).toBe("New recipe");
+
+    const cleared = await meals.setRecipe(meal.id, "   ");
+    expect(cleared.recipe).toBeNull();
+  });
+
+  test("rejects an oversized recipe", async () => {
+    await expect(
+      meals.create("Chicken Curry", "x".repeat(4001)),
+    ).rejects.toThrow(ValidationError);
   });
 
   test("rejects empty and oversized names", async () => {

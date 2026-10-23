@@ -117,11 +117,12 @@ export function createFakes(): FakeRepositories {
       return meal ? { ...meal } : null;
     },
 
-    async create(name) {
+    async create(name, recipe = null) {
       const timestamp = now();
       const meal: Meal = {
         id: store.nextMealId++,
         name,
+        recipe,
         enabled: true,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -134,6 +135,14 @@ export function createFakes(): FakeRepositories {
       const meal = store.meals.find((candidate) => candidate.id === id);
       if (!meal) return null;
       meal.name = name;
+      meal.updatedAt = now();
+      return { ...meal };
+    },
+
+    async setRecipe(id, recipe) {
+      const meal = store.meals.find((candidate) => candidate.id === id);
+      if (!meal) return null;
+      meal.recipe = recipe;
       meal.updatedAt = now();
       return { ...meal };
     },
@@ -179,6 +188,7 @@ export function createFakes(): FakeRepositories {
         status: "ORDERED",
         mealId: input.mealId,
         mealName: input.mealName,
+        mealRecipe: input.mealRecipe,
         customText: input.customText,
         idempotencyKey: input.idempotencyKey,
         createdAt: timestamp,

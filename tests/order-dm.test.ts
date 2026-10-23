@@ -15,6 +15,7 @@ function order(overrides: Partial<OrderWithUser> = {}): OrderWithUser {
     status: "ORDERED",
     mealId: 1,
     mealName: "Chicken Curry",
+    mealRecipe: null,
     customText: null,
     idempotencyKey: null,
     createdAt: new Date("2026-01-01T12:00:00Z"),
@@ -96,5 +97,23 @@ describe("order notification DM", () => {
 
     expect(description(view)).toContain(text);
     expect(description(view)).toContain("Order #1042");
+  });
+
+  test("includes the recipe captured with the order", () => {
+    const view = orderDmView(
+      order({ mealRecipe: "Simmer the sauce, then add the chicken." }),
+    );
+    const embeds = view.embeds as EmbedBuilder[];
+
+    expect(embeds).toHaveLength(2);
+    expect(embeds[1]!.toJSON().title).toBe("📝 Recipe");
+    expect(embeds[1]!.toJSON().description).toBe(
+      "Simmer the sauce, then add the chicken.",
+    );
+  });
+
+  test("omits the recipe embed when the order has none", () => {
+    const view = orderDmView(order());
+    expect(view.embeds).toHaveLength(1);
   });
 });

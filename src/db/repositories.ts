@@ -76,8 +76,8 @@ export function createMealRepository(db: Database): MealRepository {
       return row ?? null;
     },
 
-    async create(name) {
-      const [row] = await db.insert(meals).values({ name }).returning();
+    async create(name, recipe = null) {
+      const [row] = await db.insert(meals).values({ name, recipe }).returning();
       if (!row) throw new Error("Failed to create meal");
       return row;
     },
@@ -86,6 +86,15 @@ export function createMealRepository(db: Database): MealRepository {
       const [row] = await db
         .update(meals)
         .set({ name, updatedAt: new Date() })
+        .where(eq(meals.id, id))
+        .returning();
+      return row ?? null;
+    },
+
+    async setRecipe(id, recipe) {
+      const [row] = await db
+        .update(meals)
+        .set({ recipe, updatedAt: new Date() })
         .where(eq(meals.id, id))
         .returning();
       return row ?? null;
