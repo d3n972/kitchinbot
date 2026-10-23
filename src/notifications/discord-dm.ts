@@ -1,21 +1,12 @@
-import { EmbedBuilder, type Client } from "discord.js";
+import type { Client } from "discord.js";
+import { orderDmView } from "../discord/views/order-dm.ts";
 import type { OrderWithUser } from "../services/repositories.ts";
-import { buildDmDescription } from "./format.ts";
 
-/** Sends the administrator a DM. Throws on failure. */
+/** Sends the administrator the new-order DM with lifecycle buttons. */
 export async function sendDiscordDm(
   client: Client,
   adminDiscordId: string,
   order: OrderWithUser,
 ): Promise<void> {
-  const embed = new EmbedBuilder()
-    .setTitle("🍽️ New Order")
-    .setDescription(buildDmDescription(order))
-    .setColor(0xf59e0b)
-    .setTimestamp(order.createdAt);
-
-  await client.users.send(adminDiscordId, {
-    embeds: [embed],
-    allowedMentions: { parse: [] },
-  });
+  await client.users.send(adminDiscordId, orderDmView(order));
 }

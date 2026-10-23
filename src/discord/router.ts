@@ -2,6 +2,7 @@ import {
   MessageFlags,
   type ButtonInteraction,
   type Interaction,
+  type InteractionReplyOptions,
   type ModalSubmitInteraction,
   type StringSelectMenuInteraction,
 } from "discord.js";
@@ -26,6 +27,7 @@ import {
   openMyOrders,
   openOrderDetail,
 } from "./views/my-orders.ts";
+import { handleOrderDmAction } from "./views/order-dm.ts";
 import {
   handleOrderSelect,
   openOrder,
@@ -44,20 +46,26 @@ async function requireAdmin(
 ): Promise<boolean> {
   if (isAdmin(ctx, interaction.user.id)) return true;
 
-  await interaction.reply({
-    content: "You are not authorized to use this.",
-    flags: MessageFlags.Ephemeral,
-  });
+  const payload: InteractionReplyOptions = interaction.guildId
+    ? {
+        content: "You are not authorized to use this.",
+        flags: "Ephemeral",
+      }
+    : { content: "You are not authorized to use this." };
+
+  await interaction.reply(payload);
   return false;
 }
 
 async function respondWithError(interaction: Interaction): Promise<void> {
   if (!interaction.isRepliable()) return;
 
-  const payload = {
-    content: "Something went wrong. Please try again.",
-    flags: MessageFlags.Ephemeral,
-  } as const;
+  const payload: InteractionReplyOptions = interaction.guildId
+    ? {
+        content: "Something went wrong. Please try again.",
+        flags: "Ephemeral",
+      }
+    : { content: "Something went wrong. Please try again." };
 
   try {
     if (interaction.deferred || interaction.replied) {
@@ -108,6 +116,17 @@ async function routeButton(
     case "order:place": {
       const mealId = parseId(rest[0]);
       if (mealId) await placeMealOrder(ctx, interaction, mealId);
+      return;
+    }
+
+    case "dm:advance": {
+      if (!(await requireAdmin(ctx, interaction))) return;
+
+      const orderId = parseId(rest[0]);
+      const dmAction = rest[1];
+      if (orderId && dmAction && isOrderAction(dmAction)) {
+        await handleOrderDmAction(ctx, interaction, orderId, dmAction);
+      }
       return;
     }
 

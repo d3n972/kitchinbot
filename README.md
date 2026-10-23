@@ -96,6 +96,10 @@ If port 5432 is already in use, change the published port in
 - **Kitchen** (admin only) — outstanding orders with `Start Preparing`,
   `Mark Ready`, `Complete`, and `Cancel` actions. Invalid transitions are
   rejected server-side, not just hidden in the UI.
+- **Admin DM** — every new order notifies the administrator with the same
+  lifecycle as inline buttons: `Start Preparing` → `Mark Ready` → `Done`.
+  The message updates in place, and stale or invalid presses are rejected and
+  refreshed from the database.
 - **Meals** (admin only) — add, rename, enable/disable, and remove catalogue
   entries. Disabling hides a meal from ordering; meals tied to order history
   cannot be deleted.
@@ -133,7 +137,7 @@ attached.
 `Dockerfile` builds a multi-stage Bun image. GitHub Actions
 (`.github/workflows/image.yaml`) publishes multi-arch images to GHCR:
 
-- `ghcr.io/d3n972/kitchinbot:v0.1.0` (git tag)
+- `ghcr.io/d3n972/kitchinbot:v0.1.1` (git tag)
 - `ghcr.io/d3n972/kitchinbot:sha-<short>` on every `main` push
 - `ghcr.io/d3n972/kitchinbot:latest` on `main`
 
